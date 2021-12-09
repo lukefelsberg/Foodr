@@ -1,0 +1,3 @@
+Yelp data set downloaded at https://www.yelp.com/dataset, downloaded as json file.
+
+Simple python script used (using pandas library) to convert a json to a csv (for simpler file reading in C++)
