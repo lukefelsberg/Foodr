@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <unordered_map>
 using namespace std;
 
 class Business
@@ -58,7 +59,9 @@ public:
     }
     void Print()
     {
-        cout << "Name: " << name << endl;
-        cout << "Address: " << address << ", " << city << ", " << state << endl;
+        cout << name << endl; 
+        cout << address << ", " << city << ", " << state << endl;
+        cout << "Categories: " << categories << endl;
+        cout << endl;
     }
 };
