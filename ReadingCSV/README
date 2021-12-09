@@ -1,3 +1,9 @@
 Yelp data set downloaded at https://www.yelp.com/dataset, downloaded as json file.
 
-Simple python script used (using pandas library) to convert a json to a csv (for simpler file reading in C++)
+Simple python script used--convertingJson.py--to convert a json to a csv.
+This was down using the pandas library.
+
+Data set was very large (~160,000 entries), so CuttingCSV.cpp was used to cut down unnecessary, non-restaurant data. 
+Resulting file had ~104,000 entries.
+
+Final file used to source data is output_delimited_new.csv (using '|' as delimiters).
