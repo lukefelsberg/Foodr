@@ -32,6 +32,8 @@ int main()
         cout << "5. Exit" << endl;
         getline(cin, input);
         
+        set<string> categories;
+        set<string> allCategories = graph->getAllCategories();
         if (input == "1")
         {
             cout << "What state would you like to search?" << endl;
@@ -46,15 +48,19 @@ int main()
             {
                 cout << "Please enter all the categories you are looking for." << endl;
                 cout << "Once you are finished, type \"Exit\"" << endl;
-                set<string> categories;
-                set<string> allCategories = graph->getAllCategories();
+                categories.clear();
                 categories.insert("Restaurants");
                 while(input != "Exit")
                 {
                     getline(cin, input);
                     categories.insert(input);
                 }
-                graph->findMostSimilarBusiness(categories, state);
+                cout << "BFS Search" << endl;
+                graph->findMostSimilarBusinessBFS(categories, state);
+                cout << endl;
+                cout << "DFS Search" << endl;
+                graph->findMostSimilarBusinessDFS(categories, state);
+                cout << endl;
             }
         }
         else if (input == "2")
@@ -62,14 +68,19 @@ int main()
             cout << "You have chosen to not search a specific state." << endl;
             cout << "Please enter all the categories you are looking for." << endl;
             cout << "Once you are finished, type \"Exit\"" << endl;
-            set<string> categories;
-            set<string> allCategories = graph->getAllCategories();
+            categories.clear();
+            categories.insert("Restaurants");
             while (input != "Exit")
             {
                 getline(cin, input);
                 categories.insert(input);
             }
-            graph->findMostSimilarBusiness(categories);
+            cout << "BFS Search" << endl;
+            graph->findMostSimilarBusinessBFS(categories);
+            cout << endl;
+            cout << "DFS Search" << endl;
+            graph->findMostSimilarBusinessDFS(categories);
+            cout << endl;
         }
         else if (input == "3")
         {

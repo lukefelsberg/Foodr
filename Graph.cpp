@@ -168,7 +168,7 @@ void Graph::dfsState(string state)
 }
 
 //BFS Search
-vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories)
+vector<Business*> Graph::findMostSimilarBusinessBFS(set<string>& userCategories)
 {
 	int highest = 0;
 	vector<Business*> similar;
@@ -227,7 +227,7 @@ vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories)
 }
 
 //BFS State Search
-vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories, string state)
+vector<Business*> Graph::findMostSimilarBusinessBFS(set<string>& userCategories, string state)
 {
 	int highest = 0;
 	vector<Business*> similar;
@@ -284,6 +284,120 @@ vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories, st
 	return similar;
 }
 
+vector<Business*> Graph::findMostSimilarBusinessDFS(set<string>& userCategories)
+{
+	int highest = 0;
+	vector<Business*> similar;
+	for (auto st : states)
+	{
+		Vertex* source = states[st.first].at(0);
+		set<Vertex*> visited;
+		stack<Vertex*> s;
+
+		visited.insert(source);
+		s.push(source);
+		int count = 0;
+		while (s.empty() == false)
+		{
+			count++;
+			Vertex* front = s.top();
+			s.pop();
+
+			int intersection = countIntersection(front->categories, userCategories);
+			if (intersection > highest)
+			{
+				highest = intersection;
+				similar.clear();
+				similar.push_back(front->data);
+			}
+			else if (intersection == highest)
+			{
+				similar.push_back(front->data);
+			}
+			vector<Vertex*> neighbors = front->adjVertices;
+			for (Vertex* v : neighbors)
+			{
+				if (visited.count(v) == 0)
+				{
+					visited.insert(v);
+					s.push(v);
+				}
+			}
+		}
+	}
+	if (highest > 1)
+	{
+		cout << "Most Similar:" << endl;
+		for (int i = 0; i < similar.size(); i++)
+		{
+			similar.at(i)->Print();
+		}
+		cout << endl;
+	}
+	else
+	{
+		cout << "Please select more categories\n" << endl;
+		similar.clear();
+	}
+	return similar;
+}
+
+vector<Business*> Graph::findMostSimilarBusinessDFS(set<string>& userCategories, string state)
+{
+	int highest = 0;
+	vector<Business*> similar;
+
+	Vertex* source = states[state].at(0);
+	set<Vertex*> visited;
+	stack<Vertex*> s;
+
+	visited.insert(source);
+	s.push(source);
+	int count = 0;
+	while (s.empty() == false)
+	{
+		count++;
+		Vertex* front = s.top();
+		s.pop();
+
+		int intersection = countIntersection(front->categories, userCategories);
+		if (intersection > highest)
+		{
+			highest = intersection;
+			similar.clear();
+			similar.push_back(front->data);
+		}
+		else if (intersection == highest)
+		{
+			similar.push_back(front->data);
+		}
+		vector<Vertex*> neighbors = front->adjVertices;
+		for (Vertex* v : neighbors)
+		{
+			if (visited.count(v) == 0)
+			{
+				visited.insert(v);
+				s.push(v);
+			}
+		}
+	}
+
+	if (highest > 1)
+	{
+		cout << "Most Similar:" << endl;
+		for (int i = 0; i < similar.size(); i++)
+		{
+			similar.at(i)->Print();
+		}
+		cout << endl;
+	}
+	else
+	{
+		cout << "Please select more categories\n" << endl;
+		similar.clear();
+	}
+	return similar;
+}
 int Graph::countIntersection(set<string> a, set<string> b)
 {
 	vector<string> v;

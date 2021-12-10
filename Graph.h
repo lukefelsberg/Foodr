@@ -44,7 +44,9 @@ public:
     void bfsState(string state);
     void dfs();
     void dfsState(string state);
-    vector<Business*> findMostSimilarBusiness(set<string>& userCategories);
-    vector<Business*> findMostSimilarBusiness(set<string>& userCategories, string state);
+    vector<Business*> findMostSimilarBusinessBFS(set<string>& userCategories);
+    vector<Business*> findMostSimilarBusinessBFS(set<string>& userCategories, string state);
+    vector<Business*> findMostSimilarBusinessDFS(set<string>& userCategories);
+    vector<Business*> findMostSimilarBusinessDFS(set<string>& userCategories, string state);
     int countIntersection(set<string> a, set<string> b);
-};
+};	
