@@ -2,102 +2,202 @@
 
 Graph::Graph(vector<Business*>& businesses)
 {
-	set<int> visited;
 	//add a vertex to the adjacency list for every business
 	for (int i = 0; i < businesses.size(); i++)
 	{
 		vector<Vertex*> temp;
-		adjList.push_back(new Vertex(businesses.at(i), temp));
+		Vertex* newVertex = new Vertex(businesses.at(i), temp);
+		adjList.push_back(newVertex);
+
+		//insert categories
+		allCategories.insert(newVertex->categories.begin(), newVertex->categories.end());
+	
+		//create an unordered map of states and the businesses in them
+		string currState = businesses.at(i)->getState();
+		if (states.find(currState) == states.end())
+		{
+			vector<Vertex*> temp2;
+			states.emplace(currState, temp2);
+		}
+		states[currState].push_back(newVertex);
 	}
 
-	//build the graph, by attaching adjacent vertices
-	for (int i = 0; i < adjList.size(); i++)
+	for (auto iter = states.begin(); iter != states.end(); iter++)
 	{
-		Vertex* current = adjList.at(i);
-		vector<Vertex*> tempAdj;
-		//keeps track of visited vertices
-		visited.insert(i);
-		states.insert(current->data->getState()); //keeps track of states
-
-		//visit all the vertices after i
-		for (int j = i + 1; j < adjList.size(); j++)
+		for (int i = 0; i < iter->second.size(); i++)
 		{
-			//if the current vertex is in the same state as another vertex that hasn't been visited,
-			//add it to the current vertex's adjacent businesses
-			if (current->data->getState() == adjList.at(j)->data->getState() && visited.count(0)==0)
+			if (iter->second.size() > (2 * i) + 2)
 			{
-				adjList.at(i)->adjVertices.push_back(adjList.at(j));
-				visited.insert(j);
-				adjList.at(j)->adjVertices.push_back(current);
+				iter->second.at(i)->adjVertices.push_back(iter->second.at((2 * i) + 2));
+				iter->second.at((2 * i) + 2)->adjVertices.push_back(iter->second.at(i));
 			}
-
-			//if the current vertex is attached to 4 or more adjacent businesses at, move to the next vertex
-			if (adjList.at(i)->adjVertices.size() >= 4)
-				break;
+			if (iter->second.size() > (2 * i) + 1)
+			{
+				iter->second.at(i)->adjVertices.push_back(iter->second.at((2 * i) + 1));
+				iter->second.at((2 * i) + 1)->adjVertices.push_back(iter->second.at(i));
+			}
 		}
 	}
 }
 
-void Graph::Print()
+set<string> Graph::getStates()
 {
-	for (int i = 0; i < adjList.size(); i++)
+	set<string> s;
+	for (auto iter = states.begin(); iter != states.end(); iter++)
 	{
-		//prints vertices and their adjacent vertices
-		//cout << adjList.at(i)->data->getName() << ": " << endl;
-		//for (Vertex* v : adjList.at(i)->adjVertices)
-		//{
-		//	cout << v->data->getName() << ", ";
-		//}
-		//cout << "\n" << endl;
-
-		//prints categories
-		cout << i << ": ";
-		for (auto iter = adjList.at(i)->categories.begin(); iter != adjList.at(i)->categories.end(); iter++)
-		{
-			cout << *iter << ", ";
-		}
-		cout << endl;
+		s.insert(iter->first);
 	}
+	return s;
+}
 
-	//prints list of states
+set<string> Graph::getAllCategories()
+{
+	return allCategories;
+}
+
+void Graph::PrintStates()
+{
 	cout << "List of States:" << endl;
 	for (auto iter = states.begin(); iter != states.end(); iter++)
 	{
-		cout << *iter << endl;
+		cout << iter->first << endl;
+	}
+	cout << endl;
+}
+
+void Graph::PrintCategories()
+{
+	cout << "Categories:" << endl;
+	for (auto iter = allCategories.begin(); iter != allCategories.end(); iter++)
+	{
+		cout << *(iter) << endl;
+	}
+	cout << endl;
+}
+
+void Graph::PrintAdjacent() 
+{
+	cout << "Adjacency List:" << endl;
+	for (int i = 0; i < adjList.size(); i++)
+	{
+		cout << adjList.at(i)->data->getName() << ": " << endl;
+		for (Vertex* v : adjList.at(i)->adjVertices)
+		{
+			cout << v->data->getName() << ", ";
+		}
+		cout << "\n" << endl;
 	}
 }
 
 void Graph::bfs()
 {
+    cout << "BFS: " << endl;
+    for (auto st : states)
+    {
+        bfsState(st.first);
+    }
+}
+
+void Graph::bfsState(string state)
+{
+    //method for BFS inspired by Lecture 8b - Graph Traversals and Algorithms
+    cout << "BFS of " << state << ":" << endl;
+    Vertex* source = states[state].at(0);
+    set<Vertex*> visited;
+    queue<Vertex*> q;
+
+    visited.insert(source);
+    q.push(source);
+    int count = 0;
+    while (q.empty() == false)
+    {
+        count++;
+        Vertex* front = q.front();
+        cout << front->data->getName() << endl;
+        q.pop();
+        vector<Vertex*> neighbors = front->adjVertices;
+        for (Vertex* v : neighbors)
+        {
+            if (visited.count(v) == 0)
+            {
+                visited.insert(v);
+                q.push(v);
+            }
+        }
+    }
+    cout << endl;
+}
+
+void Graph::dfs()
+{
+	cout << "DFS: " << endl;
 	for (auto st : states)
 	{
-		int position;
-		for (int i = 0; i < adjList.size(); i++)
-		{
-			if (adjList[i]->data->getState() == st)
-			{
-				position = i;
-				break;
-			}
-		}
+		dfsState(st.first);
+	}
+}
 
-		//method for BFS inspired by Lecture 8b - Graph Traversals and ALgorithms
+void Graph::dfsState(string state)
+{
+    //method for DFS inspired by Lecture 8b - Graph Traversals and Algorithms
+    Vertex* source = states[state].at(0);
+    set<Vertex*> visited;
+    stack<Vertex*> s;
 
-		Vertex* source = adjList[position];
+    visited.insert(source);
+    s.push(source);
+	cout << "DFS of " << state << ":" << endl;
+    int count = 0;
+    while (s.empty() == false)
+    {
+        count++;
+        Vertex* front = s.top();
+        cout << front->data->getName() << endl;
+        s.pop();
+        vector<Vertex*> neighbors = front->adjVertices;
+        for (Vertex* v : neighbors)
+        {
+            if (visited.count(v) == 0)
+            {
+                visited.insert(v);
+                s.push(v);
+            }
+        }
+    }
+	cout << endl;
+}
 
+//BFS Search
+vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories)
+{
+	int highest = 0;
+	vector<Business*> similar;
+	for (auto st : states)
+	{
+		Vertex* source = states[st.first].at(0);
 		set<Vertex*> visited;
 		queue<Vertex*> q;
 
 		visited.insert(source);
 		q.push(source);
-		cout << "BFS: " << endl;
 		int count = 0;
 		while (q.empty() == false)
 		{
 			count++;
 			Vertex* front = q.front();
-			cout << front->data->getName() << endl;
 			q.pop();
+
+			int intersection = countIntersection(front->categories, userCategories);
+			if (intersection > highest)
+			{
+				highest = intersection;
+				similar.clear();
+				similar.push_back(front->data);
+			}
+			else if (intersection == highest)
+			{
+				similar.push_back(front->data);
+			}
 			vector<Vertex*> neighbors = front->adjVertices;
 			for (Vertex* v : neighbors)
 			{
@@ -106,41 +206,56 @@ void Graph::bfs()
 					visited.insert(v);
 					q.push(v);
 				}
-
 			}
 		}
 	}
+	if (highest > 1)
+	{
+		cout << "Most Similar:" << endl;
+		for (int i = 0; i < similar.size(); i++)
+		{
+			similar.at(i)->Print();
+		}
+		cout << endl;
+	}
+	else
+	{
+		cout << "Please select more categories\n" << endl;
+		similar.clear();
+	}
+	return similar;
 }
 
-void Graph::bfsState(string state)
+//BFS State Search
+vector<Business*> Graph::findMostSimilarBusiness(set<string>& userCategories, string state)
 {
-	int position;
-	for (int i = 0; i < adjList.size(); i++)
-	{
-		if (adjList[i]->data->getState() == state)
-		{
-			position = i;
-			break;
-		}
-	}
+	int highest = 0;
+	vector<Business*> similar;
 
-	//method for BFS inspired by Lecture 8b - Graph Traversals and ALgorithms
-
-	Vertex* source = adjList[position];
-
+	Vertex* source = states[state].at(0);
 	set<Vertex*> visited;
 	queue<Vertex*> q;
 
 	visited.insert(source);
 	q.push(source);
-	cout << "BFS: " << endl;
 	int count = 0;
 	while (q.empty() == false)
 	{
 		count++;
 		Vertex* front = q.front();
-		cout << front->data->getName() << endl;
 		q.pop();
+
+		int intersection = countIntersection(front->categories, userCategories);
+		if (intersection > highest)
+		{
+			highest = intersection;
+			similar.clear();
+			similar.push_back(front->data);
+		}
+		else if (intersection == highest)
+		{
+			similar.push_back(front->data);
+		}
 		vector<Vertex*> neighbors = front->adjVertices;
 		for (Vertex* v : neighbors)
 		{
@@ -149,100 +264,29 @@ void Graph::bfsState(string state)
 				visited.insert(v);
 				q.push(v);
 			}
-
 		}
 	}
-
 	
-
-
-
+	if (highest > 1)
+	{
+		cout << "Most Similar:" << endl;
+		for (int i = 0; i < similar.size(); i++)
+		{
+			similar.at(i)->Print();
+		}
+		cout << endl;
+	}
+	else
+	{
+		cout << "Please select more categories\n" << endl;
+		similar.clear();
+	}
+	return similar;
 }
 
-void Graph::dfs()
+int Graph::countIntersection(set<string> a, set<string> b)
 {
-	for (auto st : states)
-	{
-		int position;
-		for (int i = 0; i < adjList.size(); i++)
-		{
-			if (adjList[i]->data->getState() == st)
-			{
-				position = i;
-				break;
-			}
-		}
-
-		//method for DFS inspired by Lecture 8b - Graph Traversals and ALgorithms
-
-		Vertex* source = adjList[position];
-
-		set<Vertex*> visited;
-		stack<Vertex*> s;
-
-		visited.insert(source);
-		s.push(source);
-		cout << "BFS: " << endl;
-		int count = 0;
-		while (s.empty() == false)
-		{
-			count++;
-			Vertex* front = s.top();
-			cout << front->data->getName() << endl;
-			s.pop();
-			vector<Vertex*> neighbors = front->adjVertices;
-			for (Vertex* v : neighbors)
-			{
-				if (visited.count(v) == 0)
-				{
-					visited.insert(v);
-					q.push(v);
-				}
-
-			}
-		}
-	}
-}
-
-void Graph::dfsState(string state)
-{
-	int position;
-	for (int i = 0; i < adjList.size(); i++)
-	{
-		if (adjList[i]->data->getState() == state)
-		{
-			position = i;
-			break;
-		}
-	}
-
-	//method for DFS inspired by Lecture 8b - Graph Traversals and ALgorithms
-
-	Vertex* source = adjList[position];
-
-	set<Vertex*> visited;
-	stack<Vertex*> s;
-
-	visited.insert(source);
-	s.push(source);
-	cout << "DFS: " << endl;
-	int count = 0;
-	while (s.empty() == false)
-	{
-		count++;
-		Vertex* front = s.top();
-		cout << front->data->getName() << endl;
-		s.pop();
-		vector<Vertex*> neighbors = front->adjVertices;
-		for (Vertex* v : neighbors)
-		{
-			if (visited.count(v) == 0)
-			{
-				visited.insert(v);
-				s.push(v);
-			}
-
-		}
-	}
-
+	vector<string> v;
+	set_intersection(a.begin(), a.end(), b.begin(), b.end(), back_inserter(v));
+	return v.size();
 }
